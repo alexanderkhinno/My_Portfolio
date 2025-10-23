@@ -1,0 +1,24 @@
+
+services:
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: ta-backend
+    ports:
+      - "5001:5000"
+    volumes:
+      - ./Backend:/Backend
+    command: python app/main.py
+
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    container_name: ta-frontend
+    ports:
+      - "8000:80"
+    volumes:
+      - ./Frontend:/usr/share/nginx/html
+    depends_on:
+      - backend
