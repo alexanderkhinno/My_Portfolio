@@ -1,11 +1,13 @@
+const BASE_PATH = "http://localhost:3000"
+
 // Helper functions
-async function fetchText(url) {
-    const response = await fetch(url);
+async function fetchText(pathname) {
+    const response = await fetch(new URL(`/api/${pathname}`, BASE_PATH));
     return await response.text();
 }
 
-async function fetchJSON(url) {
-    const response = await fetch(url);
+async function fetchJSON(pathname) {
+    const response = await fetch(new URL(`/api/${pathname}`, BASE_PATH));
     return await response.json();
 }
 
@@ -28,15 +30,15 @@ async function parseProfilerText(url) {
 // Load and display text files
 async function loadTextFiles() {
     // Best solution
-    const bestSolution = await fetchJSON("http://ta-backend:5001/final-results");
+    const bestSolution = await fetchJSON("/final-results");
     document.querySelector("#best-solution pre").textContent = bestSolution;
 
     // Profiler summary
-    const profilerSummaryData = await fetchJSON("http://ta-backend:5001/time-profile");
+    const profilerSummaryData = await fetchJSON("/time-profile");
     document.querySelector("#profiler-summary pre").textContent = JSON.stringify(profilerSummaryData, null, 2);
 
     // Summary CSV head
-    const summaryCSV = await fetchJSON("http://ta-backend:5001/summary-csv");
+    const summaryCSV = await fetchJSON("/summary-csv");
     document.querySelector("#summary-csv pre").textContent = summaryCSV.split("\n").slice(0, 6).join("\n");
 }
 
@@ -74,17 +76,17 @@ function drawBarChart(svg, data, xKey, yKey) {
 // Load and render D3 charts
 async function loadD3Visualizations() {
     // Time profile chart
-    const timeProfileData = await fetchJSON("http://ta-backend:5001/time-profile");
+    const timeProfileData = await fetchJSON("/time-profile");
     const svg1 = d3.select("#time-profile-chart svg");
     drawBarChart(svg1, timeProfileData, "function", "time");
     
     // Final results chart
-    const finalResultsData = await fetchJSON("http://ta-backend:5001/final-results");
+    const finalResultsData = await fetchJSON("/final-results");
     const svg2 = d3.select("#final-results-chart svg");
     drawBarChart(svg2, finalResultsData, "metric", "value");
 
     // Call counts chart
-    const callCountsData = await fetchJSON("http://ta-backend:5001/call-counts");
+    const callCountsData = await fetchJSON("/call-counts");
     const svg3 = d3.select("#call-counts-chart svg");
     drawBarChart(svg3, callCountsData, "function", "calls");
 }

@@ -10,7 +10,7 @@ OUTPUT_PATH = os.path.join(os.path.dirname(__file__), "../dstrut/output")
 
 @app.route("/api/time-profile")
 def time_profile():
-    path = os.path.join(OUTPUT_PATH, "test_profile.txt")
+    path = os.path.join(OUTPUT_PATH, "AlexK_profile.txt")
     data = parse_test_profile(path)
     return jsonify(data)
 

@@ -1,6 +1,13 @@
 import os
 
-def parse_test_profile(filename="test_profile.txt"):
+def get_output_path(filename):
+    """Return full path to backend/output/filename and create folder if needed."""
+    base_dir = os.path.dirname(__file__)
+    output_dir = os.path.join(base_dir, "output")
+    os.makedirs(output_dir, exist_ok=True)
+    return os.path.join(output_dir, filename)
+
+def parse_test_profile(filename: str):
     """Parse test_profile.txt into list of {test, avg_time, calls}"""
     filepath = get_output_path(filename)
     data = []
@@ -9,7 +16,7 @@ def parse_test_profile(filename="test_profile.txt"):
             line = line.strip()
             if not line or line.startswith("Function") or line.startswith("="):
                 continue
-            parts = line.split()
+            parts = line.split()[2:]
             if len(parts) >= 4:
                 func_name = parts[0]
                 calls = int(parts[1])
