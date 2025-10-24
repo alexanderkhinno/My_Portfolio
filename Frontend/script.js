@@ -1,6 +1,5 @@
 const BASE_PATH = "http://localhost:3000"
 
-// Helper functions
 async function fetchText(pathname) {
     const response = await fetch(new URL(`/api/${pathname}`, BASE_PATH));
     return await response.text();
@@ -10,86 +9,110 @@ async function fetchJSON(pathname) {
     const response = await fetch(new URL(`/api/${pathname}`, BASE_PATH));
     return await response.json();
 }
-
-// Parse profiler text into structured data
-async function parseProfilerText(url) {
-    const text = await fetchText(url);
-    const lines = text.split("\n").slice(2); // skip header
-    const data = lines.map(line => {
-        const parts = line.trim().split(/\s+/);
-        return {
-            function: parts[0],
-            calls: +parts[1],
-            total_time: +parts[2],
-            avg_time: +parts[3]
-        };
-    });
-    return data;
-}
-
 // Load and display text files
 async function loadTextFiles() {
     // Best solution
     const bestSolution = await fetchJSON("/final-results");
-    document.querySelector("#best-solution pre").textContent = bestSolution;
+    document.querySelector("#best-solution pre").textContent = JSON.stringify(bestSolution, null, 2);
 
     // Profiler summary
-    const profilerSummaryData = await fetchJSON("/time-profile");
+    const profilerSummaryData = await fetchJSON("/call-counts");
     document.querySelector("#profiler-summary pre").textContent = JSON.stringify(profilerSummaryData, null, 2);
 
-    // Summary CSV head
-    const summaryCSV = await fetchJSON("/summary-csv");
-    document.querySelector("#summary-csv pre").textContent = summaryCSV.split("\n").slice(0, 6).join("\n");
 }
 
-// Setup SVGs
 function setupCharts() {
     d3.selectAll("svg")
         .attr("width", "100%")
         .attr("height", 400);
 }
 
-// Generic bar chart function
 function drawBarChart(svg, data, xKey, yKey) {
-    const width = parseInt(svg.style("width"));
-    const height = parseInt(svg.style("height"));
+    svg.selectAll("*").remove();
 
+    // Scale avg_time by 100000 for visibility
+    const scaledData = data.map(d => ({
+        ...d,
+        scaled_time: +d[yKey] * 100000  // ensure numeric
+    }));
+
+    const width = 800;
+    const height = 400;
+    const margin = { top: 30, right: 20, bottom: 120, left: 80 };
+
+    const innerWidth = width - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
+
+    const g = svg
+        .attr("width", width)
+        .attr("height", height)
+        .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    // X scale
     const x = d3.scaleBand()
-        .domain(data.map(d => d[xKey]))
-        .range([0, width])
+        .domain(scaledData.map(d => d[xKey]))
+        .range([0, innerWidth])
         .padding(0.1);
 
+    // Y scale
     const y = d3.scaleLinear()
-        .domain([0, d3.max(data, d => d[yKey])])
-        .range([height, 0]);
+        .domain([0, d3.max(scaledData, d => d.scaled_time)])
+        .range([innerHeight, 0])
+        .nice();
 
-    svg.selectAll("rect")
-        .data(data)
+    // X axis
+    g.append("g")
+        .attr("transform", `translate(0,${innerHeight})`)
+        .call(d3.axisBottom(x))
+        .selectAll("text")
+        .attr("transform", "rotate(-45)")
+        .style("text-anchor", "end")
+        .style("font-size", "10px");
+
+    // Y axis
+    g.append("g")
+        .call(d3.axisLeft(y));
+
+    // Bars
+    g.selectAll("rect")
+        .data(scaledData)
         .join("rect")
         .attr("x", d => x(d[xKey]))
-        .attr("y", d => y(d[yKey]))
+        .attr("y", d => y(d.scaled_time))
         .attr("width", x.bandwidth())
-        .attr("height", d => height - y(d[yKey]))
-        .attr("fill", "white");
+        .attr("height", d => innerHeight - y(d.scaled_time))
+        .attr("fill", "steelblue");
+
+    // Y label
+    g.append("text")
+        .attr("x", -innerHeight / 2)
+        .attr("y", -margin.left + 20)
+        .attr("transform", "rotate(-90)")
+        .attr("text-anchor", "middle")
+        .style("font-size", "12px")
+        .attr("fill", "white")
+        .text("Average Time (ms)");
+
+    // Title
+    g.append("text")
+        .attr("x", innerWidth / 2)
+        .attr("y", -10)
+        .attr("text-anchor", "middle")
+        .style("font-size", "14px")
+        .attr("fill", "white")
+        .text("Average Time per Function");
 }
 
-// Load and render D3 charts
 async function loadD3Visualizations() {
-    // Time profile chart
-    const timeProfileData = await fetchJSON("/time-profile");
-    const svg1 = d3.select("#time-profile-chart svg");
-    drawBarChart(svg1, timeProfileData, "function", "time");
-    
-    // Final results chart
-    const finalResultsData = await fetchJSON("/final-results");
-    const svg2 = d3.select("#final-results-chart svg");
-    drawBarChart(svg2, finalResultsData, "metric", "value");
+    // Fetch the profiler data
+    const profilerData = await fetchJSON("/call-counts");
 
-    // Call counts chart
-    const callCountsData = await fetchJSON("/call-counts");
-    const svg3 = d3.select("#call-counts-chart svg");
-    drawBarChart(svg3, callCountsData, "function", "calls");
+    // Draw the bar chart with function vs avg_time
+    const svg1 = d3.select("#time-profile-chart svg");
+    drawBarChart(svg1, profilerData, "function", "avg_time");
 }
+
 
 // Initialize everything
 async function init() {

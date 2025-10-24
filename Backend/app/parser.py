@@ -1,34 +1,10 @@
 import os
 
 def get_output_path(filename):
-    """Return full path to backend/output/filename and create folder if needed."""
+    """Return full path to backend/output/filename"""
     base_dir = os.path.dirname(__file__)
     output_dir = os.path.join(base_dir, "output")
-    os.makedirs(output_dir, exist_ok=True)
     return os.path.join(output_dir, filename)
-
-def parse_test_profile(filename: str):
-    """Parse test_profile.txt into list of {test, avg_time, calls}"""
-    filepath = get_output_path(filename)
-    data = []
-    with open(filepath) as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith("Function") or line.startswith("="):
-                continue
-            parts = line.split()[2:]
-            if len(parts) >= 4:
-                func_name = parts[0]
-                calls = int(parts[1])
-                total_time = float(parts[2])
-                avg_time = float(parts[3])
-                data.append({
-                    "function": func_name,
-                    "calls": calls,
-                    "total_time": total_time,
-                    "avg_time": avg_time
-                })
-    return data
 
 def parse_best_solution(filename="best_solution.txt"):
     """Parse best_solution.txt into a dictionary"""
@@ -41,26 +17,34 @@ def parse_best_solution(filename="best_solution.txt"):
                 result[key.strip()] = val.strip()
     return result
 
-def parse_profiler_summary(filename="profiler_summary.txt", top_n=10):
-    """Parse profiler summary and return top N functions by calls"""
-    filepath = get_output_path(filename)
+def parse_profiler_summary(filename="AlexK_profile.txt"):
+    """Parse profiler summary"""
     data = []
-    with open(filepath) as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith("Function") or line.startswith("="):
-                continue
-            parts = line.split()
-            if len(parts) >= 4:
-                func_name = parts[0]
-                calls = int(parts[1])
-                total_time = float(parts[2])
-                avg_time = float(parts[3])
-                data.append({
-                    "function": func_name,
-                    "calls": calls,
-                    "total_time": total_time,
-                    "avg_time": avg_time
-                })
-    data = sorted(data, key=lambda x: x["calls"], reverse=True)
-    return data[:top_n]
+    with open(filename, "r") as f:
+        lines = f.readlines()
+
+    # Skip first 3 lines: total execution time, empty, header
+    for line in lines[3:]:
+        line = line.strip()
+        if not line:
+            continue
+        # Split by whitespace
+        parts = line.split()
+        if len(parts) < 4:
+            continue
+        # The last 3 parts are Calls, Total Time, Avg Time
+        func_name = " ".join(parts[:-3])
+        try:
+            calls = int(parts[-3])
+            total_time = float(parts[-2])
+            avg_time = float(parts[-1])
+            data.append({
+                "function": func_name,
+                "calls": calls,
+                "total_time": total_time,
+                "avg_time": avg_time
+            })
+        except ValueError:
+            # skip lines that can't be parsed
+            continue
+    return data
