@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>TA Assignment Visualizations</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+
+
+    <header>
+        <h1>TA Assignment Analysis</h1>
+    </header>
+
+
+    <section id="file-outputs">
+        <h2>Text Files Preview</h2>
+        <div id="best-solution">
+            <h3>Best Solution</h3>
+            <pre>Loading...</pre>
+        </div>
+        <div id="profiler-summary">
+            <h3>Profiler Summary</h3>
+            <pre>Loading...</pre>
+        </div>
+    </section>
+    
+
+    <section id="visualizations">
+        <h2>D3 Visualizations</h2>
+
+        <div class="chart" id="time-profile-chart">
+            <h3>Average Time per Call</h3>
+            <svg></svg>
+        </div>
+    </section>
+
+    <script src="script.js"></script>
+</body>
+</html>

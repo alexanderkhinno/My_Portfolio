@@ -1,7 +1,0 @@
-Overallocation: 0
-Conflicts: 0
-Undersupport: 1
-Unavailable: 3
-Unpreferred: 0
-Total Penalty: 4
-

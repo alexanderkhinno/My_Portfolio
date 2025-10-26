@@ -1,0 +1,16 @@
+Total execution time: 300.02 seconds
+
+Function                  Calls      Total Time   Avg Time    
+conflict_reduction_agent  85628      3.5105       0.000041    
+conflicts                 683021     60.0586      0.000088    
+constraint_repair_agent   84943      3.4826       0.000041    
+crossover_agent           85390      0.9398       0.000011    
+mutation_agent            85407      0.2733       0.000003    
+overallocation            683021     3.6650       0.000005    
+random_solution_agent     85162      0.6430       0.000008    
+section_coverage_agent    85407      0.5336       0.000006    
+swap_assignment_agent     85585      0.4436       0.000005    
+unavailable               683021     47.7876      0.000070    
+undersupport              683021     3.0670       0.000004    
+unpreferred               683021     27.3645      0.000040    
+workload_balancing_agent  85479      0.3921       0.000005    
